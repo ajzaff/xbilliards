@@ -1,12 +1,13 @@
-package org.spacenut.billiards
+package com.alanjz.xbilliards.math
 
 import java.awt.Point
-import java.awt.Polygon
-import java.awt.Rectangle
-import java.util.HashSet
 import java.awt.geom.Rectangle2D
 
-class BilliardsCollisionManager {
+import com.alanjz.xbilliards.balls.BallObject
+
+import scala.collection.parallel.mutable
+
+class CollisionManager {
   
   /**
    * The typical table offset
@@ -60,15 +61,15 @@ class BilliardsCollisionManager {
    * Set of active balls on the table
    */
   
-  val balls = new HashSet[BilliardsBall]()
+  val balls = new mutable.ParHashSet[BallObject]()
   
   /**
    * Update the game state with elastic collisions
    */
   
   def update() {
-    val iter = balls.iterator()
-    while(iter.hasNext()) {
+    val iter = balls.iterator
+    while(iter.hasNext) {
       val ball = iter.next()
       ball.pt.setLocation(ball.vel.x + ball.pt.x, ball.vel.y + ball.pt.y)
       performCollision(ball)
@@ -79,7 +80,7 @@ class BilliardsCollisionManager {
   /**
    * Slows down the ball by a variable multiplicative factor
    */
-  private def slowDown(b: BilliardsBall) {
+  private def slowDown(b: BallObject) {
     b.vel.setLocation(b.vel.x*.992, b.vel.y*.992)
     if(b.vel.x + b.vel.y < .2) {
       b.vel.setLocation(0,0)
@@ -93,49 +94,49 @@ class BilliardsCollisionManager {
    * not collide again until in the clear or in a pocket
    */
   
-  private val collisionFlaggedBalls = new HashSet[BilliardsBall]()
+  private val collisionFlaggedBalls = new mutable.ParHashSet[BallObject]()
   
   /**
    * Sense a collision and act on it
    */
   
-  private def performCollision(b: BilliardsBall) {
+  private def performCollision(b: BallObject) {
     val flagged = collisionFlaggedBalls.contains(b)
     
     if(!flagged && bottomLeft.intersects(b.bounds2D)) {
       b.vel.setLocation(b.vel.x, -b.vel.y)
-      collisionFlaggedBalls.add(b)
+      collisionFlaggedBalls += b
     }
     
     else if(!flagged && bottomRight.intersects(b.bounds2D)) {
       b.vel.setLocation(b.vel.x, -b.vel.y)
-      collisionFlaggedBalls.add(b)
+      collisionFlaggedBalls += b
     }
     
     else if(!flagged && topLeft.intersects(b.bounds2D)) {
       b.vel.setLocation(b.vel.x, -b.vel.y)
-      collisionFlaggedBalls.add(b)
+      collisionFlaggedBalls += b
     }
     
     else if(!flagged && topRight.intersects(b.bounds2D)) {
       b.vel.setLocation(b.vel.x, -b.vel.y)
-      collisionFlaggedBalls.add(b)
+      collisionFlaggedBalls+= b
     }
     
     else if(!flagged && back.intersects(b.bounds2D)) {
       b.vel.setLocation(-b.vel.x, b.vel.y)
-      collisionFlaggedBalls.add(b)
+      collisionFlaggedBalls += b
     }
     
     else if(!flagged && front.intersects(b.bounds2D)) {
       b.vel.setLocation(-b.vel.x, b.vel.y)
-      collisionFlaggedBalls.add(b)
+      collisionFlaggedBalls+= b
     }
     
     // Remove the collision flag;
     // it is safe to collide again
     else {
-      collisionFlaggedBalls.remove(b)
+      collisionFlaggedBalls -= b
     }
   }
 }
