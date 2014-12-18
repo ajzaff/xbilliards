@@ -1,0 +1,6 @@
+bin/
+out/
+billiards.iml
+.settings
+.idea
+*~
